@@ -15,23 +15,14 @@ public class BotMain
 
     public static void main(String[] args) throws IOException
     {
-        Properties settings = new Properties();
-        File propFile = new File( "settings.properties" );
 
-        if ( !propFile.exists() )
-        {
-            settings.setProperty( "token", "token_plz" );
-            settings.store( new FileOutputStream( propFile ), "LaTeX-Bot Setting(s)" );
-            return;
-        }
-
-        settings.load( new FileInputStream( propFile ) );
+        Settings settings = new Settings();
 
         ClientBuilder clientBuilder = new ClientBuilder();
-        clientBuilder.withToken( settings.getProperty( "token" ) );
+        clientBuilder.withToken( settings.getToken() );
         IDiscordClient client = clientBuilder.login();
 
         EventDispatcher dispatcher = client.getDispatcher();
-        dispatcher.registerListener( new AnnotationListener( client ) );
+        dispatcher.registerListener( new EventListener( client, settings ) );
     }
 }
