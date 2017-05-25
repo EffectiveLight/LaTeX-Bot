@@ -1,2 +1,2 @@
 # LaTeX-Bot
-Bot that renders LaTeX for Discord.
+A bot that renders LaTeX for Discord.
