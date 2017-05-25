@@ -15,7 +15,6 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Properties;
 
 public class EventListener
 {
@@ -46,6 +45,8 @@ public class EventListener
         if ( content.startsWith( cmd ) )
         {
             String tex = content.substring( cmd.length() ).trim();
+            System.out.printf( "LaTeX: %s\n", tex );
+
             TeXFormula formula = new TeXFormula( tex );
             BufferedImage image = ( BufferedImage ) formula
                     .createBufferedImage( TeXConstants.STYLE_DISPLAY, 20,
@@ -60,10 +61,7 @@ public class EventListener
                     new MessageBuilder( client ).withChannel( event.getChannel() )
                             .withFile( inputStream, "tex.png" ).build();
                 }
-
             }
-
         }
-
     }
 }
