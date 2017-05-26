@@ -1,5 +1,6 @@
 package com.effective_light.latex_bot;
 
+import org.scilab.forge.jlatexmath.ParseException;
 import org.scilab.forge.jlatexmath.TeXConstants;
 import org.scilab.forge.jlatexmath.TeXFormula;
 import sx.blah.discord.api.IDiscordClient;
@@ -10,11 +11,11 @@ import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.MessageBuilder;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 public class EventListener
 {
@@ -31,8 +32,8 @@ public class EventListener
     public void onReady(ReadyEvent event)
     {
         IUser ourUser = event.getClient().getOurUser();
-        System.out.println( ourUser.getStringID() );
-        System.out.printf( "Logged in as %s!\n", ourUser.getName() );
+        System.out.printf( "Logged in as %s (%s)!\n",
+                ourUser.getName(), ourUser.getStringID() );
     }
 
     @EventSubscriber
@@ -45,22 +46,33 @@ public class EventListener
         if ( content.startsWith( cmd ) )
         {
             String tex = content.substring( cmd.length() ).trim();
-            System.out.printf( "LaTeX: %s\n", tex );
 
-            TeXFormula formula = new TeXFormula( tex );
-            BufferedImage image = ( BufferedImage ) formula
-                    .createBufferedImage( TeXConstants.STYLE_DISPLAY, 20,
-                            new Color( 219, 219, 219 ), new Color( 54, 57, 62 ) );
-
-            try ( ByteArrayOutputStream outputStream = new ByteArrayOutputStream() )
+            System.out.printf( "[%s (%s) -> LaTeX] %s\n",
+                    event.getAuthor().getName(), event.getAuthor().getStringID(), tex );
+            try
             {
-                ImageIO.write( image, "png", outputStream );
+                TeXFormula formula = new TeXFormula( tex );
 
-                try ( ByteArrayInputStream inputStream = new ByteArrayInputStream( outputStream.toByteArray() ) )
+                BufferedImage image = ( BufferedImage ) formula
+                        .createBufferedImage( TeXConstants.STYLE_DISPLAY, settings.getImageSize(),
+                                settings.getTextColor(), settings.getBackgroundColor() );
+
+                try ( ByteArrayOutputStream outputStream = new ByteArrayOutputStream() )
                 {
-                    new MessageBuilder( client ).withChannel( event.getChannel() )
-                            .withFile( inputStream, "tex.png" ).build();
+                    ImageIO.write( image, "png", outputStream );
+
+                    try ( InputStream inputStream = new ByteArrayInputStream( outputStream.toByteArray() ) )
+                    {
+
+                        new MessageBuilder( client ).withChannel( event.getChannel() )
+                                .withFile( inputStream, "tex.png" ).build();
+                    }
                 }
+            } catch ( ParseException e )
+            {
+                new MessageBuilder( client ).withChannel( event.getChannel() ).withContent(
+                                String.format( "__The given input was unable to be rendered!__\n**Reason:** `%s`",
+                                e.getMessage() ) ).build();
             }
         }
     }
