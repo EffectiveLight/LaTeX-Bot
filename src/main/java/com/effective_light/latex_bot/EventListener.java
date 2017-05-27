@@ -71,7 +71,7 @@ public class EventListener
             } catch ( ParseException e )
             {
                 new MessageBuilder( client ).withChannel( event.getChannel() ).withContent(
-                                String.format( "__The given input was unable to be rendered!__\n**Reason:** `%s`",
+                                String.format( "**The given input was unable to be rendered!**\n**Reason:** ```Markdown\n%s```",
                                 e.getMessage() ) ).build();
             }
         }
