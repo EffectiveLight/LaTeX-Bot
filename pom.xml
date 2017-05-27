@@ -6,7 +6,7 @@
 
     <groupId>com.effective_light</groupId>
     <artifactId>latex-bot</artifactId>
-    <version>1.1</version>
+    <version>1.2</version>
     <name>LaTeX-Bot</name>
 
     <properties>

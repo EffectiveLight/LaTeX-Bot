@@ -16,6 +16,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.StringJoiner;
 
 public class EventListener
 {
@@ -70,10 +71,24 @@ public class EventListener
                 }
             } catch ( ParseException e )
             {
-                new MessageBuilder( client ).withChannel( event.getChannel() ).withContent(
-                                String.format( "**The given input was unable to be rendered!**\n**Reason:** ```Markdown\n%s```",
-                                e.getMessage() ) ).build();
+                String message = e.getMessage();
+                new MessageBuilder( client )
+                        .withChannel( event.getChannel() )
+                        .withContent( String.format( "**The given input was unable to be rendered!**\n" +
+                                        "**Reason(s):** ```Markdown\n%s```", formatErrorMessage( message ) ) ).build();
             }
         }
+    }
+
+    private String formatErrorMessage(String errorMessage)
+    {
+        String[] reasons = errorMessage.split( "\n" );
+
+        StringJoiner stringJoiner = new StringJoiner( "\n" );
+
+        for ( int i = 0; i < reasons.length; i++ )
+           stringJoiner.add( String.format( "%d. %s", i + 1, reasons[i] ) );
+
+        return stringJoiner.toString();
     }
 }
