@@ -75,7 +75,7 @@ public class EventListener
                 new MessageBuilder( client )
                         .withChannel( event.getChannel() )
                         .withContent( String.format( "**The given input was unable to be rendered!**\n" +
-                                        "**Reason(s):** ```Markdown\n%s```", formatErrorMessage( message ) ) ).build();
+                                "**Reason(s):** ```Markdown\n%s```", formatErrorMessage( message ) ) ).build();
             }
         }
     }
@@ -87,7 +87,7 @@ public class EventListener
         StringJoiner stringJoiner = new StringJoiner( "\n" );
 
         for ( int i = 0; i < reasons.length; i++ )
-           stringJoiner.add( String.format( "%d. %s", i + 1, reasons[i] ) );
+            stringJoiner.add( String.format( "%d. %s", i + 1, reasons[ i ] ) );
 
         return stringJoiner.toString();
     }
