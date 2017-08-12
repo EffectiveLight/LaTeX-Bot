@@ -7,7 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 
-public class Settings
+class Settings
 {
 
     private String token;
@@ -15,7 +15,7 @@ public class Settings
     private Color textColor;
     private Color backgroundColor;
 
-    public Settings() throws IOException
+    Settings() throws IOException
     {
         Properties settings = new Properties();
         String fileName = "settings.properties";
@@ -27,9 +27,9 @@ public class Settings
             settings.setProperty( "image-size", "20.0" );
             settings.setProperty( "text-color", "219,219,219" );
             settings.setProperty( "background-color", "54,57,62" );
-            settings.store( new FileOutputStream( propFile ), "LaTeX-Bot Setting(s)" );
+            settings.store( new FileOutputStream( propFile ), "LaTeX-Bot Settings" );
             System.out.printf( "Please, modify the %s file as desired.\n", fileName );
-            System.exit( 1 );
+            System.exit( -1 );
         }
 
         settings.load( new FileInputStream( propFile ) );
@@ -47,7 +47,14 @@ public class Settings
 
         this.textColor = new Color( textRgb[ 0 ], textRgb[ 1 ], textRgb[ 2 ] );
 
-        String[] backgroundComponents = settings.getProperty( "background-color" ).split( "," );
+        String background = settings.getProperty( "background-color" );
+
+        if ( "null".equals( background ) )
+        {
+            return;
+        }
+
+        String[] backgroundComponents = background.split( "," );
         int[] backgroundRgb = new int[ 3 ];
 
         for ( int i = 0; i < backgroundComponents.length; i++ )
@@ -58,22 +65,22 @@ public class Settings
         this.backgroundColor = new Color( backgroundRgb[ 0 ], backgroundRgb[ 1 ], backgroundRgb[ 2 ] );
     }
 
-    public String getToken()
+    String getToken()
     {
         return token;
     }
 
-    public float getImageSize()
+    float getImageSize()
     {
         return imageSize;
     }
 
-    public Color getTextColor()
+    Color getTextColor()
     {
         return textColor;
     }
 
-    public Color getBackgroundColor()
+    Color getBackgroundColor()
     {
         return backgroundColor;
     }

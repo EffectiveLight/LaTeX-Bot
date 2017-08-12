@@ -75,8 +75,8 @@ public class EventListener
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern( "yyyy-MM-dd HH:mm:ss" );
         String creationTime = event.getMessage().getTimestamp().format( formatter );
-        String editTime = event.getMessage().getEditedTimestamp().map( localDateTime ->
-                localDateTime.format( formatter ) ).orElse( null );
+        String editTime = event.getMessage().getEditedTimestamp().map(
+                localDateTime -> localDateTime.format( formatter ) ).orElse( null );
 
         if ( content.startsWith( CMD ) )
         {
@@ -109,8 +109,8 @@ public class EventListener
             } catch ( ParseException e )
             {
                 messageSent = new MessageBuilder( client ).withChannel( event.getChannel() )
-                        .withContent( String.format( "<@%d>: **The input given at `%s` was unable to be rendered!**\n" +
-                                        "**Reason(s):** ```Markdown\n%s```",
+                        .withContent( String.format( "<@%d>: **The input given at `%s` was unable to be rendered!**\n"
+                                        + "**Reason(s):** ```Markdown\n%s```",
                                 event.getAuthor().getLongID(), editTime != null ? editTime : creationTime,
                                 formatErrorMessage( e.getMessage() ) ) ).build();
             }
