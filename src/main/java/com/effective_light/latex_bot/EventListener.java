@@ -6,7 +6,6 @@ import org.scilab.forge.jlatexmath.TeXFormula;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
-import sx.blah.discord.handle.impl.events.guild.channel.message.MessageEvent;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageUpdateEvent;
 import sx.blah.discord.handle.obj.IMessage;
@@ -23,11 +22,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringJoiner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class EventListener
 {
-
     private static final String CMD = "!tex ";
+    private static Pattern pattern = Pattern.compile( "`(" + CMD + ".*?)`" );
 
     private IDiscordClient client;
     private Settings settings;
@@ -51,7 +52,7 @@ public class EventListener
     @EventSubscriber
     public void onMessageReceived(MessageReceivedEvent event) throws IOException
     {
-        renderLaTex( event );
+        renderLaTex( event.getMessage() );
     }
 
     @EventSubscriber
@@ -64,18 +65,18 @@ public class EventListener
                 message.delete();
 
             if ( !event.getNewMessage().isDeleted() )
-                renderLaTex( event );
+                renderLaTex( event.getMessage() );
         }
     }
 
-    private void renderLaTex(MessageEvent event) throws IOException
+    private void renderLaTex(IMessage message) throws IOException
     {
-        String content = event.getMessage().getContent();
+        String content = message.getContent();
         IMessage messageSent;
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern( "yyyy-MM-dd HH:mm:ss" );
-        String creationTime = event.getMessage().getTimestamp().format( formatter );
-        String editTime = event.getMessage().getEditedTimestamp().map(
+        String creationTime = message.getTimestamp().format( formatter );
+        String editTime = message.getEditedTimestamp().map(
                 localDateTime -> localDateTime.format( formatter ) ).orElse( null );
 
         if ( content.startsWith( CMD ) )
@@ -83,7 +84,7 @@ public class EventListener
             String tex = content.substring( CMD.length() ).trim();
 
             System.out.printf( "[%s (%s) -> LaTeX] %s\n",
-                    event.getAuthor().getName(), event.getAuthor().getStringID(), tex );
+                    message.getAuthor().getName(), message.getAuthor().getStringID(), tex );
             try
             {
                 TeXFormula formula = new TeXFormula( tex );
@@ -99,22 +100,32 @@ public class EventListener
                     try ( InputStream inputStream = new ByteArrayInputStream( outputStream.toByteArray() ) )
                     {
                         messageSent = new MessageBuilder( client )
-                                .withChannel( event.getChannel() )
+                                .withChannel( message.getChannel() )
                                 .withFile( inputStream, "tex.png" )
                                 .withContent( String.format( "<@%d>: `%s` Created at: %s%s",
-                                        event.getAuthor().getLongID(), tex, creationTime, editTime != null ?
+                                        message.getAuthor().getLongID(), tex, creationTime, editTime != null ?
                                                 String.format( " (Last edited: %s)", editTime ) : "" ) ).build();
                     }
                 }
             } catch ( ParseException e )
             {
-                messageSent = new MessageBuilder( client ).withChannel( event.getChannel() )
+                messageSent = new MessageBuilder( client ).withChannel( message.getChannel() )
                         .withContent( String.format( "<@%d>: **The input given at `%s` was unable to be rendered!**\n"
                                         + "**Reason(s):** ```Markdown\n%s```",
-                                event.getAuthor().getLongID(), editTime != null ? editTime : creationTime,
+                                message.getAuthor().getLongID(), editTime != null ? editTime : creationTime,
                                 formatErrorMessage( e.getMessage() ) ) ).build();
             }
-            replies.put( event.getMessage().getLongID(), messageSent );
+            replies.put( message.getLongID(), messageSent );
+        } else
+        {
+            Matcher matcher = pattern.matcher( content );
+
+            while ( matcher.find() )
+            {
+                renderLaTex( new MessageBuilder( client ).withChannel( message.getChannel() ).withContent(
+                        matcher.group( 1 ) ).build() );
+            }
+            return;
         }
     }
 
